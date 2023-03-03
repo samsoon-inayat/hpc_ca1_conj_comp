@@ -1,18 +1,18 @@
-%%
-add_to_path;
-
 for ii = 1:60
     pause(1);
 end
 %%
+add_to_path
+%%
 clear all
 % clc
 %%
-data_folder1 = 'E:\Data';%'\\mohajerani-nas.uleth.ca\storage\homes\samsoon.inayat\Data';
-data_folder2 = 'E:\Data';%'\\mohajerani-nas.uleth.ca\storage2\homes\samsoon.inayat\Data';
-processed_data_folder{1} = 'E:\PData\Processed_Data_15';%'\\mohajerani-nas.uleth.ca\storage\homes\brendan.mcallister\2P\Processed_Data_15';
-processed_data_folder{2} = 'E:\PData\Processed_Data_15\Matlab';%'\\mohajerani-nas.uleth.ca\storage\homes\brendan.mcallister\2P\Processed_Data_15\Matlab';
-processed_data_folder{3} = 'E:\PData\Processed_Data_15\Matlab_bw3';%'\\mohajerani-nas.uleth.ca\storage\homes\brendan.mcallister\2P\Processed_Data_15\Matlab_bw3';
+mainDrive = 'E:\';
+data_folder1 = fullfile(mainDrive,'Data');%'\\mohajerani-nas.uleth.ca\storage\homes\samsoon.inayat\Data';
+data_folder2 = fullfile(mainDrive,'Data');%'\\mohajerani-nas.uleth.ca\storage2\homes\samsoon.inayat\Data';
+processed_data_folder{1} = fullfile(mainDrive,'PData\Processed_Data_15');%'\\mohajerani-nas.uleth.ca\storage\homes\brendan.mcallister\2P\Processed_Data_15';
+processed_data_folder{2} = fullfile(mainDrive,'PData\Processed_Data_15\Matlab');%'\\mohajerani-nas.uleth.ca\storage\homes\brendan.mcallister\2P\Processed_Data_15\Matlab';
+processed_data_folder{3} = fullfile(mainDrive,'PData\Processed_Data_15\Matlab_bw3');%'\\mohajerani-nas.uleth.ca\storage\homes\brendan.mcallister\2P\Processed_Data_15\Matlab_bw3';
 animal_list_control = {'183633';'183761';'183745';'183628';'183762'};
 date_list_control = {'2019-06-04';'2019-06-06';'2019-06-07';'2019-06-11';'2019-06-11'};
 [dS_C,T_C] = get_exp_info_from_folder(data_folder1,processed_data_folder,animal_list_control,date_list_control);
@@ -32,7 +32,7 @@ mData.conj_comp_colors = [mData.dcolors(9);mData.colors([3 5])];
 % display_colors(mData.colors);
 % Uleth_one_drive = 'Z:\homes\brendan.mcallister\2P';
 % Uleth_one_drive = 'E:\Users\samsoon.inayat\OneDrive - University of Lethbridge\PDFs';
-Uleth_one_drive = 'E:\PostProcessing\Revamp_Conj_Comp_Paper';
+Uleth_one_drive = fullfile(mainDrive,'PostProcessing\Revamp_Conj_Comp_Paper');
 mData.pdf_folder = [Uleth_one_drive '\PDFs']; 
 mData.pd_folder = [Uleth_one_drive '\PD_Matlab'];
 mData.magfac = 1;
@@ -67,19 +67,12 @@ for ii = 1:length(ei)
     ei(ii) = get_control_air_onsets_C(ei(ii));
     ei(ii) = get_control_air_offsets(ei(ii));
 end
-send_email('samsoon.inayat@gmail.com','Done');
-%% get control light onsets
-for ii = 1:length(ei)
-    ei(ii) = get_control_air_Monsets(ei(ii));
-    ei(ii) = get_control_air_Moffsets(ei(ii));
-end
-send_email('samsoon.inayat@gmail.com','Done');
 %%
 binwidths = [0.11 3];
 for ii = 1:length(ei)
     ei(ii) = make_and_load_motion_correction(ei(ii),binwidths,[0 0 0]);
 end
-send_email('samsoon.inayat@gmail.com','Done');
+
 %%
 binwidths = [0.11 3];
 for ii = 1:length(ei)
@@ -95,51 +88,18 @@ end
 toc
 %%
 clc
-binwidths = [0.11 3];
 tic
 for ii = 1:length(ei)
     ei(ii) = make_and_load_rasters(ei(ii),binwidths,[0 0 0]);
 end
-
+toc
+%%
+tic
 for ii = 1:length(ei)
     ei(ii) = get_motion_onset_response(ei(ii),[0 0 0 0 0]);
 end
 toc
 disp('Done');
-send_email('samsoon.inayat@gmail.com','Done');
-%% cell_pose total cells
-
-files = dir(sprintf('%s/*.mat',mData.pd_folder));
-for ii = 1:length(files)
-    tname = files(ii).name;
-    anN = str2num(tname(9)); plN = str2num(tname(11));
-    mi_cp{ii} = load(fullfile(files(ii).folder,files(ii).name));
-    ei{anN}.plane{plN}.total_cells = length(unique(mi_cp{ii}.mask))-1;
-    totalCells(ii) = ei{anN}.plane{plN}.total_cells;
-end
-totalCells(3) = totalCells(3) + 200; % I manually counted the cells as Cellpose didn't do a good job
-totalCells(4) = totalCells(4) + 170; % I manually counted the cells as Cellpose didn't do a good job
-
-cellposeCells(1) = totalCells(1) + totalCells(2);
-cellposeCells(2) = totalCells(3) + totalCells(4);
-cellposeCells(3) = totalCells(5);
-cellposeCells(4) = totalCells(6);
-cellposeCells(5) = totalCells(7);
-
-% for ii = 1:length(files)
-%     maskii = mi_cp{ii}.mask;
-%     totC = length(unique(maskii))-1;
-% %     if ii == 1
-% %         ei{1}.plane{1}.totalCells = 
-% %     end
-% %     if ii == 2
-% %         ei{1}.plane{2}.totalCells = length(unique(maskii))-1;
-% %     end
-% %     rois = regionprops(maskii);
-% %     figure(10000);clf;imagesc(maskii);axis equal;colorbar
-% %     totalcells(ii) = length(unique(maskii))-1;
-% end
-
 %%
 tic
 for ii = 1:length(ei)
